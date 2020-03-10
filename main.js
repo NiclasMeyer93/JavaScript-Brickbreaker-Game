@@ -10,6 +10,15 @@ const tokenWidth = 100;
 const tokenMarginBottom = 50;
 const tokenHeight = 20;
 
+
+let leftArrow = false;
+let rightArrow = false;
+
+let playerLife = 3;
+let currentLevel = 1;
+let gameOver = false;
+let brokeAllBricks = false;
+
 const ballRadius = 8;
 
 const brick = {
@@ -26,9 +35,7 @@ const brick = {
 
 let bricks = [];
 
-let leftArrow = false;
-let rightArrow = false;
-let playerLife = 3;
+
 
 // Token Outline
 const token = {
@@ -151,14 +158,17 @@ function ballReset() {
 function ballTouchingWall() {
     if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
         ball.dx = - ball.dx;
+        hitWall.play();
     }
 
     if (ball.y - ball.radius < 0) {
         ball.dy = - ball.dy;
+        hitWall.play();
     }
 
     if (ball.y + ball.radius > canvas.height) {
         playerLife--;
+        loseLife.play();
         ballReset();
     }
 }
@@ -167,6 +177,7 @@ function ballTouchingWall() {
 function ballTouchingToken() {
     if (ball.x < token.x + token.width && ball.x > token.x && token.y < token.y + token.height && ball.y > token.y) {
 
+        hitToken.play();
         let touchPoint = ball.x - (token.x + token.width / 2);
 
         touchPoint = touchPoint / (token.width / 2);
@@ -188,13 +199,50 @@ function ballTouchingBrick() {
                 if (ball.x + ball.radius > b.x && ball.x - ball.radius < b.x + brick.width && ball.y + ball.radius > b.y && ball.y - ball.radius < b.y + brick.height) {
                     ball.dy = - ball.dy;
                     b.status = false;
+                    hitBrick.play();
                 }
             }
         }
     }
 }
 
+// Game Stats
 
+function displayStatDescription(desc, descX, descY) {
+    ctx.fillStyle = "#FFF";
+    ctx.font = "20px Impact";
+    ctx.fillText(desc, descX, descY);
+}
+
+function displayCurrentLevelAndLife(stat, statX, statY) {
+    ctx.fillStyle = "#FFF";
+    ctx.font = "20px Impact";
+    ctx.fillText(stat, statX, statY);
+}
+
+// Game Over
+
+function checkGameOver() {
+    if(playerLife == -1){
+        gameOver = true;
+    }
+}
+
+function newLevel() {
+    brokeAllBricks = true;
+    for (let r = 0; r < brick.row; r++) {
+        for (let c = 0; c < brick.column; c++) {
+            brokeAllBricks = brokeAllBricks && ! bricks[r][c].status;
+        }
+    }
+    if(brokeAllBricks) {
+        
+        outlineBricks();
+        ball.velocity += 1;
+        ballReset();
+        currentLevel++;
+    }
+}
 
 
 // Game Functions
@@ -205,6 +253,15 @@ function create() {
     createBall();
 
     createBricks();
+
+    displayStatDescription("Level: ", 10, 25);
+    displayCurrentLevelAndLife(currentLevel, 70, 25);
+
+    
+    displayStatDescription("Life: ", canvas.width -70, 25);
+    displayCurrentLevelAndLife(playerLife, canvas.width -25, 25);
+
+
 }
 
 function update() {
@@ -219,6 +276,9 @@ function update() {
 
     ballTouchingBrick();
 
+    checkGameOver();
+
+    newLevel();
 
 }
 
@@ -226,11 +286,15 @@ function update() {
 function loop() {
 
     ctx.drawImage(backgroundImage, 0, 0);
+    //backgroundMusic.play();
+    //backgroundMusic.volume = 0.07;
     create();
 
     update();
 
+    if(gameOver == false) {
     requestAnimationFrame(loop);
+    }
 }
 
 loop();
