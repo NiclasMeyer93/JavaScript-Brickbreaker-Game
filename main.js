@@ -19,6 +19,9 @@ let currentLevel = 1;
 let gameOver = false;
 let brokeAllBricks = false;
 
+const gameOverScreen = document.getElementById("gameoverscreen");
+const restart = document.getElementById("restart");
+
 const ballRadius = 8;
 
 const brick = {
@@ -34,8 +37,6 @@ const brick = {
 }
 
 let bricks = [];
-
-
 
 // Token Outline
 const token = {
@@ -220,12 +221,26 @@ function displayCurrentLevelAndLife(stat, statX, statY) {
     ctx.fillText(stat, statX, statY);
 }
 
-// Game Over
+// Game Over and Restart
 
 function checkGameOver() {
     if(playerLife == -1){
         gameOver = true;
+        playerGameOver();
+        restartGame();
     }
+}
+
+function playerGameOver() {
+    gameOverScreen.style.display = "block";
+    restart.style.display = "block";
+}
+
+function restartGame() {
+    restart.addEventListener("click", function(){
+        location.reload();
+    }
+    )
 }
 
 function newLevel() {
@@ -287,7 +302,7 @@ function loop() {
 
     ctx.drawImage(backgroundImage, 0, 0);
     //backgroundMusic.play();
-    //backgroundMusic.volume = 0.07;
+    backgroundMusic.volume = 0.07;
     create();
 
     update();
